@@ -182,12 +182,14 @@ window.BULK = {
                         .focus(callback)
                         .click(callback)
                         .on('copy', function () {
-                            jQuery(this).attr('style', 'font-family:FontinSmallcaps,serif;background-color:rgb(9,9,9);');
+                            jQuery(this).attr('style', 'font-family:FontinSmallcaps,serif;background-color:rgb(9,9,9);border-bottom:1px solid #4dc64d;');
                         })
                     ;
 
                     $textarea.select();
                 }
+
+                delete me._itemById[$node.attr('data-id')];
             }
         }
     }

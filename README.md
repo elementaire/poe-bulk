@@ -15,7 +15,7 @@ Functionnality
 - Adds a textarea under each trade with an accurate whisper
     - The lastest textarea added always gains the focus
     - Click on or focus on a textarea select all the text of the whisper
-    - The background color of the textarea will change to black if at least one copy is detected
+    - The color of the textarea will change if at least one copy is detected
 - Compatible with [POE Trades Companion][3] meaning copying the whisper will send it automatically in the game
 
 Screenshot
