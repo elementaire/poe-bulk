@@ -15,20 +15,20 @@ window.BULK = {
     start: function() {
         let me = BULK;
 
-        if (!MutationObserver) {
-            me._notify('error', 'POE Bulk: No MutationObserver.');
-            return;
-        }
-
         if (!me._jQuery) {
             let jQuery = $;
 
             if (!jQuery) {
-                me._notify('error', 'POE Bulk: No jQuery.');
+                console.error('POE Bulk: No jQuery.');
                 return;
             }
 
             me._jQuery = jQuery;
+        }
+
+        if (!MutationObserver) {
+            me._notify('error', 'POE Bulk: No MutationObserver.');
+            return;
         }
 
         let jQuery = me._jQuery;
