@@ -1,16 +1,25 @@
 POE Bulk CHANGELOG
 ==================
 
-1.0.2 - 20201-02-20
--------------------
+1.2.0 - 2021-02-28
+------------------
+
+- Feat: make it compatible with the "Bulk item exchange" tab
+- Feat: update the whisper when the item is udpated
+- Feat: remove the textarea when the item is gone or outdated
+- Feat: update the bookmarklet script in order to load source from this github meaning no further manual update needed
+- Fix: memory optimization
+
+1.1.1 - 2021-02-20
+------------------
 
 - Fix: display the error to the console when jQuery is missing
 
-1.0.1 - 2021-02-15
+1.1.0 - 2021-02-15
 ------------------
 
 - Feat: addition of a green bottom border to the textarea after copy
-- Feat: memory optimization
+- Fix: memory optimization
 
 1.0.0 - 2021-02-13
 ------------------

@@ -16,6 +16,9 @@ Functionnality
     - The lastest textarea added always gains the focus
     - Click on or focus on a textarea select all the text of the whisper
     - The color of the textarea will change if at least one copy is detected
+- Updates the whisper when the item is updated
+- Removes the textarea when the item is gone or outdated
+- Works with both "Search Listed Item" and "Bulk Item Exchange" tabs
 - Compatible with [POE Trades Companion][3] meaning copying the whisper will send it automatically in the game
 
 Screenshot
@@ -31,6 +34,8 @@ Installation
 3. Copy and paste all [this text][4] in the URL input
 4. Save
 
+**Note:** no further update needed, the bookmarklet will always load the lastest version from this Github.
+
 Start POE Bulk
 --------------
 
@@ -45,7 +50,13 @@ Start POE Bulk
 
 **Note:** you have to click on the bookmark each time you open a new tab or navigate to a new URL in an existing tab.
 
+Changelog
+---------
+
+The changelog history is available [here][5].
+
 [1]: https://en.wikipedia.org/wiki/Bookmarklet
 [2]: https://pathofexile.com/trade/search/
 [3]: https://github.com/lemasato/POE-Trades-Companion
-[4]: dist/bulk.js
+[4]: dist/bookmarklet.min.js
+[5]: CHANGELOG.md
