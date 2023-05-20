@@ -6,6 +6,7 @@ POE Bulk CHANGELOG
 
 - Feat: update the rounding rule for exalted to divine
 - Fix: memory optimization
+- Remove: drop compatibility with the "Bulk item exchange" tab
 
 1.2.0 - 2021-02-28
 ------------------

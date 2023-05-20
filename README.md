@@ -18,7 +18,7 @@ Functionnality
     - The color of the textarea will change if at least one copy is detected
 - Updates the whisper when the item is updated
 - Removes the textarea when the item is gone or outdated
-- Works with both "Search Listed Item" and "Bulk Item Exchange" tabs
+- Works with "Search Listed Item" tab only
 - Compatible with [POE Trades Companion][3] meaning copying the whisper will send it automatically in the game
 
 Screenshot

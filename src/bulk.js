@@ -185,7 +185,6 @@ window.BULK = {
                         let itemJSON = result.item || {};
                         let accountJSON = listingJSON.account || {};
                         let priceJSON = listingJSON.price || {};
-                        let priceExchangeJSON = priceJSON.exchange || {};
                         let priceItemJSON = priceJSON.item || {};
 
                         let itemData = {
@@ -196,8 +195,8 @@ window.BULK = {
                             lastCharacterName: accountJSON.lastCharacterName || null,
                             league: itemJSON.league || null,
                             name: itemJSON.name || null,
-                            outAmount: priceExchangeJSON.amount || priceJSON.amount || null,
-                            outCurrency: priceExchangeJSON.currency || priceJSON.currency || null,
+                            outAmount: priceJSON.amount || null,
+                            outCurrency: priceJSON.currency || null,
                             stock: priceItemJSON.stock || itemJSON.stackSize || 1,
                             typeLine: itemJSON.typeLine || null,
                             whisper,
