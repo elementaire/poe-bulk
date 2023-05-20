@@ -94,7 +94,7 @@ window.BULK = {
             let price = stock * outAmount / inAmount;
 
             if (/\{0}/.test(whisper)) {
-                whisper = whisper.replace('{0}', stock).replace('{1}', 'exalted' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price));
+                whisper = whisper.replace('{0}', stock).replace('{1}', 'divine' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price));
             } else if (1 < stock) {
                 let label = item.typeLine;
                 let lastCharacterName = item.lastCharacterName;
@@ -107,7 +107,7 @@ window.BULK = {
                         label = item.name + ' ' + label;
                     }
 
-                    whisper = '@' + lastCharacterName + ' Hi, I\'d like to buy your ' + stock + ' ' + label + ' for my ' + ('exalted' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price)) + ' ' + outCurrency + ' in ' + league + '.';
+                    whisper = '@' + lastCharacterName + ' Hi, I\'d like to buy your ' + stock + ' ' + label + ' for my ' + ('divine' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price)) + ' ' + outCurrency + ' in ' + league + '.';
                 }
             }
         }
@@ -205,7 +205,7 @@ window.BULK = {
                             couldBeGarbage: false
                         };
 
-                        me._itemById[result.id] = itemData;
+                        me._itemById[id] = itemData;
 
                         if ($bulks.length) {
                             $bulks.find('textarea').val(me._buildWhisper(itemData)).attr('style', '');

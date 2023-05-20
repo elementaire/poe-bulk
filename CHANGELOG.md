@@ -1,6 +1,12 @@
 POE Bulk CHANGELOG
 ==================
 
+1.2.1 - 2023-05-20
+------------------
+
+- Feat: update the rounding rule for exalted to divine
+- Fix: memory optimization
+
 1.2.0 - 2021-02-28
 ------------------
 
