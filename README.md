@@ -21,10 +21,11 @@ Functionnality
 - Works with "Search Listed Item" tab only
 - Compatible with [POE Trades Companion][3] meaning copying the whisper will send it automatically in the game
 
-Screenshot
-----------
+Screenshots
+-----------
 
 ![](assets/poe-bulk-small.png)
+![](assets/poe-bulk-filters.png)
 
 Installation
 ------------

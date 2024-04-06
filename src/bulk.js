@@ -3,6 +3,7 @@
 window.BULK && BULK.stop();
 
 window.BULK = {
+    _controls: null,
     _itemById: [],
     _jQuery: null,
     _jQueryAjax: null,
@@ -10,13 +11,19 @@ window.BULK = {
     _notification: null,
     _TEMPLATES: {
         NOTIFICATION: '<div class="toast-container toast-bottom-center"><div class="toast toast-STATE" style="display: block;"><div class="toast-title"></div> <div class="toast-message">MESSAGE</div></div></div>',
-        TEXTAREA: '<div class="row" data-bulk-id="ID"><div style="margin:0 auto;width:50%;padding:5px;font-family:FontinSmallcaps,serif;"><textarea class="form-control text-center" rows="1" readonly>WHISPER</textarea></div></div>'
+        TEXTAREA: '<div class="row" data-bulk-id="ID"><div style="margin:0 auto;width:50%;padding:5px;font-family:FontinSmallcaps,serif;"><textarea class="form-control text-center" rows="1" readonly>WHISPER</textarea></div></div>',
+        CONTROLS: '<div class="filter-group" id="bulk-controls"><div class="filter-group-header"><div class="filter"><span class="input-group-btn" style="visibility:hidden;"><button class="btn toggle-btn"></button></span><span class="filter-body"><span class="filter-title filter-title-clickable"><span>POE Bulk</span></span></span></div></div><div class="filter-group-body"><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Quantity</div><span class="sep"></span><input type="number" placeholder="min" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-min"><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-max"></span></div><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Buyout Bulk Price</div><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9.,]*" min="0" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-price-max"></span></div><div class="filter filter-property full-span"><span class="filter-body"><div class="filter-title">Automatic sending of whisper</div><span class="sep"></span><label style="display:flex;justify-content:center;align-items: center;background:#1e2124;height:30px;width:30px;float:left;margin:0;cursor:pointer;"><input type="checkbox" style="display:block;border:2px solid #634928;background:#000000;" id="bulk-controls-sending"></label></span></div></div></div>'
     },
     start: function() {
-        let me = BULK;
+        if (!MutationObserver) {
+            me._notify('error', 'POE Bulk: No MutationObserver.');
+            return;
+        }
+
+        const me = BULK;
 
         if (!me._jQuery) {
-            let jQuery = $;
+            const jQuery = $;
 
             if (!jQuery) {
                 console.error('POE Bulk: No jQuery.');
@@ -26,15 +33,10 @@ window.BULK = {
             me._jQuery = jQuery;
         }
 
-        if (!MutationObserver) {
-            me._notify('error', 'POE Bulk: No MutationObserver.');
-            return;
-        }
-
-        let jQuery = me._jQuery;
+        const jQuery = me._jQuery;
 
         if (!me._jQueryAjax) {
-            let jQueryAjax = jQuery.ajax;
+            const jQueryAjax = jQuery.ajax;
 
             if (!jQueryAjax) {
                 me._notify('error', 'POE Bulk: No jQuery ajax.');
@@ -48,11 +50,23 @@ window.BULK = {
             me._mutationObserver = new MutationObserver(me._onMutation);
         }
 
-        let $results = jQuery('.results');
+        const $results = jQuery('.results');
 
         if (!$results.length) {
             me._notify('error', 'POE Bulk: No result container.');
             return;
+        }
+
+        if (!me._controls) {
+            const $filtersContainer = jQuery('.search-advanced-pane.blue');
+
+            if (!$filtersContainer.length) {
+                me._notify('error', 'POE Bulk: No filters container.');
+                return;
+            }
+
+            me._controls = jQuery(me._TEMPLATES.CONTROLS);
+            $filtersContainer.append(me._controls);
         }
 
         me._mutationObserver.disconnect();
@@ -62,10 +76,16 @@ window.BULK = {
         me._notify('success', 'POE Bulk has started.');
     },
     stop: function() {
-        let me = BULK;
-        let jQuery = me._jQuery;
-        let jQueryAjax = me._jQueryAjax;
-        let mutationObserver = me._mutationObserver;
+        const me = BULK;
+        const controls = me._controls;
+        const jQuery = me._jQuery;
+        const jQueryAjax = me._jQueryAjax;
+        const mutationObserver = me._mutationObserver;
+        const notification = me._notification;
+
+        if (controls) {
+            controls.remove();
+        }
 
         if (jQuery && jQueryAjax) {
             jQuery.ajax = jQueryAjax;
@@ -74,40 +94,59 @@ window.BULK = {
         if (mutationObserver) {
             mutationObserver.disconnect();
         }
+
+        if (notification) {
+            notification.remove();
+        }
+
+        me._controls = null;
+        me._itemById = [];
+        me._jQuery = null;
+        me._jQueryAjax = null;
+        me._mutationObserver = null;
+        me._notification = null;
     },
     _ajax: function(url, options) {
-        let me = BULK;
-        let jQuery = me._jQuery;
-        let jQueryAjax = me._jQueryAjax;
-        let jqXhr = jQueryAjax(url, options);
+        const me = BULK;
+        const jQuery = me._jQuery;
+        const jQueryAjax = me._jQueryAjax;
+        const jqXhr = jQueryAjax(url, options);
 
         return jQuery.extend({}, jqXhr, jqXhr.pipe(me._onAjax));
     },
     _buildWhisper: function (item) {
-        let whisper = item.whisper;
-        let stock = item.stock;
-        let inAmount = item.inAmount;
-        let outAmount = item.outAmount;
-        let outCurrency = item.outCurrency;
+        const whisper = item.whisper;
+        const stock = item.stock;
+        const inAmount = item.inAmount;
+        const outAmount = item.outAmount;
+        const outCurrency = item.outCurrency;
 
         if (inAmount && outAmount && outCurrency) {
-            let price = stock * outAmount / inAmount;
+            const quantityMax = parseInt($('#bulk-controls-quantity-max').val().replace(',','.'));
+            const maxPrice = parseFloat($('#bulk-controls-price-max').val().replace(',','.'));
+            const oneItemPrice = outAmount / inAmount;
+            const maxPriceStock = isNaN(maxPrice) ? null : Math.floor(maxPrice / oneItemPrice);
+            const stockToBuy = Math.min(...[stock, quantityMax, maxPriceStock].filter((number) => null !== number && !isNaN(number)));
+            const price = stockToBuy * oneItemPrice;
+            const priceToBuy = 'divine' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price);
 
             if (/\{0}/.test(whisper)) {
-                whisper = whisper.replace('{0}', stock).replace('{1}', 'divine' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price));
-            } else if (1 < stock) {
+                return whisper.replace('{0}', stockToBuy).replace('{1}', priceToBuy);
+            }
+
+            if (1 < stock) {
                 let label = item.typeLine;
-                let lastCharacterName = item.lastCharacterName;
-                let league = item.league;
+                const lastCharacterName = item.lastCharacterName;
+                const league = item.league;
 
                 if (label && lastCharacterName && league) {
-                    let name = item.name;
+                    const name = item.name;
 
                     if (name) {
-                        label = item.name + ' ' + label;
+                        label = name + ' ' + label;
                     }
 
-                    whisper = '@' + lastCharacterName + ' Hi, I\'d like to buy your ' + stock + ' ' + label + ' for my ' + ('divine' === outCurrency ? Math.ceil(price * 100) / 100 : Math.ceil(price)) + ' ' + outCurrency + ' in ' + league + '.';
+                    return '@' + lastCharacterName + ' Hi, I\'d like to buy your ' + stockToBuy + ' ' + label + ' for my ' + priceToBuy + ' ' + outCurrency + ' in ' + league + '.';
                 }
             }
         }
@@ -115,14 +154,14 @@ window.BULK = {
         return whisper;
     },
     _garbage: function () {
-        let me = BULK;
-        let jQuery = me._jQuery;
-        let idToRemove = [];
+        const me = BULK;
+        const jQuery = me._jQuery;
+        const idToRemove = [];
         let shouldGarbage = false;
 
         for (const id in me._itemById) {
             if (me._itemById.hasOwnProperty(id)) {
-                let item = me._itemById[id];
+                const item = me._itemById[id];
 
                 if (item.mustBeGarbage) {
                     jQuery('.gone[data-id="' + id + '"]').next('[data-bulk-id="' + id + '"]').remove();
@@ -145,10 +184,10 @@ window.BULK = {
         }
     },
     _notify: function(state, message) {
-        let me = BULK;
-        let notification = me._notification;
-        let jQuery = me._jQuery;
-        let $notification = jQuery(me._TEMPLATES.NOTIFICATION.replace('STATE', state).replace('MESSAGE', message));
+        const me = BULK;
+        const notification = me._notification;
+        const jQuery = me._jQuery;
+        const $notification = jQuery(me._TEMPLATES.NOTIFICATION.replace('STATE', state).replace('MESSAGE', message));
 
         if (notification) {
             notification.remove();
@@ -156,38 +195,41 @@ window.BULK = {
 
         jQuery('body').append($notification);
 
-        notification = $notification;
+        me._notification = $notification;
 
         setTimeout(function() {
+            const notification = me._notification;
+
             if (notification) {
                 notification.remove();
+                me._notification = null;
             }
         }, 2500);
     },
     _onAjax: function(data) {
         if (data && data.result) {
-            let me = BULK;
-            let jQuery = me._jQuery;
+            const me = BULK;
+            const jQuery = me._jQuery;
 
             for (const result of data.result) {
-                let listingJSON = result.listing || {};
+                const listingJSON = result.listing || {};
 
-                let id = result.id || null;
-                let gone = result.gone || false;
-                let whisper = listingJSON.whisper || null;
+                const id = result.id || null;
+                const gone = result.gone || false;
+                const whisper = listingJSON.whisper || null;
 
                 if (id) {
-                    let $bulks = jQuery('[data-bulk-id="' + id + '"]');
+                    const $bulks = jQuery('[data-bulk-id="' + id + '"]');
 
                     if (gone) {
                         $bulks.remove();
                     } else if (whisper) {
-                        let itemJSON = result.item || {};
-                        let accountJSON = listingJSON.account || {};
-                        let priceJSON = listingJSON.price || {};
-                        let priceItemJSON = priceJSON.item || {};
+                        const itemJSON = result.item || {};
+                        const accountJSON = listingJSON.account || {};
+                        const priceJSON = listingJSON.price || {};
+                        const priceItemJSON = priceJSON.item || {};
 
-                        let itemData = {
+                        const itemData = {
                             id,
                             gone,
                             inAmount: priceItemJSON.amount || 1,
@@ -218,33 +260,36 @@ window.BULK = {
         return data;
     },
     _onMutation: function(mutationRecords) {
-        let me = BULK;
-
-        mutationRecords.forEach(me._onMutationRecord);
+        mutationRecords.forEach(BULK._onMutationRecord);
     },
     _onMutationRecord: function(mutationRecord) {
-        let me = BULK;
-
-        mutationRecord.addedNodes.forEach(me._onMutationRecordAdded);
+        mutationRecord.addedNodes.forEach(BULK._onMutationRecordAdded);
     },
     _onMutationRecordAdded: function(node) {
-        let me = BULK;
-        let jQuery = me._jQuery;
-        let $node = jQuery(node);
+        const me = BULK;
+        const jQuery = me._jQuery;
+        const $node = jQuery(node);
 
         if ($node.is('[data-id]')) {
-            let id = $node.attr('data-id');
-            let item = me._itemById[id];
+            const id = $node.attr('data-id');
+            const item = me._itemById[id];
 
             if (item) {
-                if (!item.gone) {
-                    let whisper = me._buildWhisper(item);
+                const quantityMin = parseInt($('#bulk-controls-quantity-min').val().replace(',','.'));
+                const quantityMax = parseInt($('#bulk-controls-quantity-max').val().replace(',','.'));
+                const maxPrice = parseFloat($('#bulk-controls-price-max').val().replace(',','.'));
+                const maxPriceStock = isNaN(maxPrice) ? null : Math.floor(maxPrice / (item.outAmount / item.inAmount));
 
-                    let $div = jQuery(me._TEMPLATES.TEXTAREA.replace('ID', id).replace('WHISPER', whisper));
+                if ((!isNaN(quantityMin) && item.stock < quantityMin) || (!isNaN(quantityMax) && quantityMax <= 0) || (null !== maxPriceStock && maxPriceStock <= 0)) {
+                    $node.remove();
+                } else if (!item.gone) {
+                    const whisper = me._buildWhisper(item);
+
+                    const $div = jQuery(me._TEMPLATES.TEXTAREA.replace('ID', id).replace('WHISPER', whisper));
                     $node.after($div);
 
-                    let $textarea = $div.find('textarea');
-                    let callback = function () {
+                    const $textarea = $div.find('textarea');
+                    const callback = function () {
                         jQuery(this).select();
                     };
 
@@ -257,6 +302,10 @@ window.BULK = {
                     ;
 
                     $textarea.select();
+
+                    if (jQuery('#bulk-controls-sending').is(':checked')) {
+                        $node.find('.direct-btn:not(.disabled)').trigger('click');
+                    }
                 }
 
                 if (item.mustBeGarbage) {

@@ -1,6 +1,16 @@
 POE Bulk CHANGELOG
 ==================
 
+1.3.0 - 2024-04-06
+------------------
+
+- Feat: add "POE Bulk" section in the filters
+- Feat: use "min" of "Quantity" to hide an item if the stock of the offer is insufficient
+- Feat: use "max" of "Quantity" to limit the quantity of the text in the textarea
+- Feat: use "max" of "Buyout Bulk Price" to limit the quantity of the text in the textarea
+- Feat: check "Automatic sending of whisper" to send the whisper when the item is displayed
+- Fix: memory optimization
+
 1.2.1 - 2023-05-20
 ------------------
 
@@ -12,7 +22,7 @@ POE Bulk CHANGELOG
 ------------------
 
 - Feat: make it compatible with the "Bulk item exchange" tab
-- Feat: update the whisper when the item is udpated
+- Feat: update the text in the textarea when the item is udpated
 - Feat: remove the textarea when the item is gone or outdated
 - Feat: update the bookmarklet script in order to load source from this github meaning no further manual update needed
 - Fix: memory optimization
