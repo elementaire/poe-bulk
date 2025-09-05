@@ -12,7 +12,7 @@ quicker and doing it with efficiency.
 Two main functionalities
 ------------------------
 
-1) Sending whisper
+1) Whisper
     - Adds a textarea under each trade with an accurate whisper
         - The latest textarea added always gains the focus
         - Click on or focus on a textarea select all the text of the whisper
