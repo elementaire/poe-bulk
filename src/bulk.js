@@ -12,7 +12,7 @@ window.BULK = {
     _TEMPLATES: {
         NOTIFICATION: '<div class="toast-container toast-bottom-center"><div class="toast toast-STATE" style="display: block;"><div class="toast-title"></div> <div class="toast-message">MESSAGE</div></div></div>',
         TEXTAREA: '<div class="row" data-bulk-id="ID"><div style="margin:0 auto;width:50%;padding:5px;font-family:FontinSmallcaps,serif;"><textarea class="form-control text-center" rows="1" readonly>WHISPER</textarea></div></div>',
-        CONTROLS: '<div class="filter-group" id="bulk-controls"><div class="filter-group-header"><div class="filter"><span class="input-group-btn" style="visibility:hidden;"><button class="btn toggle-btn"></button></span><span class="filter-body"><span class="filter-title filter-title-clickable"><span>POE Bulk</span></span></span></div></div><div class="filter-group-body"><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Quantity</div><span class="sep"></span><input type="number" placeholder="min" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-min"><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-max"></span></div><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Buyout Bulk Price</div><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9.,]*" min="0" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-price-max"></span></div><div class="filter filter-property full-span"><span class="filter-body"><div class="filter-title">Automatic sending of whisper</div><span class="sep"></span><label style="display:flex;justify-content:center;align-items: center;background:#1e2124;height:30px;width:30px;float:left;margin:0;cursor:pointer;"><input type="checkbox" style="display:block;border:2px solid #634928;background:#000000;" id="bulk-controls-sending"></label></span></div></div></div>'
+        CONTROLS: '<div class="filter-group" id="bulk-controls"><div class="filter-group-header"><div class="filter"><span class="input-group-btn" style="visibility:hidden;"><button class="btn toggle-btn"></button></span><span class="filter-body"><span class="filter-title filter-title-clickable"><span>POE Bulk</span></span></span></div></div><div class="filter-group-body"><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Quantity</div><span class="sep"></span><input type="number" placeholder="min" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-min"><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-max"></span></div><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Buyout Bulk Price</div><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9.,]*" min="0" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-price-max"></span></div><div class="filter filter-property full-span"><span class="filter-body"><div class="filter-title">Automatic sending of whisper or trading</div><span class="sep"></span><label style="display:flex;justify-content:center;align-items: center;background:#1e2124;height:30px;width:30px;float:left;margin:0;cursor:pointer;"><input type="checkbox" style="display:block;border:2px solid #634928;background:#000000;" id="bulk-controls-sending"></label></span></div></div></div>'
     },
     start: function() {
         const me = BULK;
@@ -212,26 +212,39 @@ window.BULK = {
             const jQuery = me._jQuery;
 
             for (const result of data.result) {
-                const listingJSON = result.listing || {};
-
                 const id = result.id || null;
-                const gone = result.gone || false;
-                const whisper = listingJSON.whisper || null;
 
                 if (id) {
+                    const gone = result.gone || false;
+                    const listingJSON = result.listing || {};
+                    const hideout = listingJSON.hideout_token || null;
+                    const whisper = listingJSON.whisper || null;
                     const $bulks = jQuery('[data-bulk-id="' + id + '"]');
 
                     if (gone) {
                         $bulks.remove();
+                    } else if (hideout) {
+                        me._itemById[id] = {
+                            id,
+                            gone,
+                            hideout: true,
+                            mustBeGarbage: 0 < $bulks.length,
+                            couldBeGarbage: false
+                        };
+
+                        if ($bulks.length) {
+                            window.setTimeout(me._garbage, 350);
+                        }
                     } else if (whisper) {
                         const itemJSON = result.item || {};
                         const accountJSON = listingJSON.account || {};
                         const priceJSON = listingJSON.price || {};
                         const priceItemJSON = priceJSON.item || {};
 
-                        const itemData = {
+                        me._itemById[id] = {
                             id,
                             gone,
+                            hideout: false,
                             inAmount: priceItemJSON.amount || 1,
                             inCurrency: priceItemJSON.currency || null,
                             lastCharacterName: accountJSON.lastCharacterName || null,
@@ -246,10 +259,8 @@ window.BULK = {
                             couldBeGarbage: false
                         };
 
-                        me._itemById[id] = itemData;
-
                         if ($bulks.length) {
-                            $bulks.find('textarea').val(me._buildWhisper(itemData)).attr('style', '');
+                            $bulks.find('textarea').val(me._buildWhisper(me._itemById[id])).attr('style', '');
                             window.setTimeout(me._garbage, 350);
                         }
                     }
@@ -275,36 +286,42 @@ window.BULK = {
             const item = me._itemById[id];
 
             if (item) {
-                const quantityMin = parseInt($('#bulk-controls-quantity-min').val().replace(',','.'));
-                const quantityMax = parseInt($('#bulk-controls-quantity-max').val().replace(',','.'));
-                const maxPrice = parseFloat($('#bulk-controls-price-max').val().replace(',','.'));
-                const maxPriceStock = isNaN(maxPrice) ? null : Math.floor(maxPrice / (item.outAmount / item.inAmount));
-
-                if ((!isNaN(quantityMin) && item.stock < quantityMin) || (!isNaN(quantityMax) && quantityMax <= 0) || (null !== maxPriceStock && maxPriceStock <= 0)) {
-                    $node.remove();
-                } else if (!item.gone) {
-                    const whisper = me._buildWhisper(item);
-
-                    const $div = jQuery(me._TEMPLATES.TEXTAREA.replace('ID', id).replace('WHISPER', whisper));
-                    $node.after($div);
-
-                    const $textarea = $div.find('textarea');
-                    const callback = function () {
-                        jQuery(this).select();
-                    };
-
-                    $textarea
-                        .focus(callback)
-                        .click(callback)
-                        .on('copy', function () {
-                            jQuery(this).attr('style', 'background-color:rgb(9,9,9);border-bottom:1px solid #4dc64d;');
-                        })
-                    ;
-
-                    $textarea.select();
-
+                if (item.hideout) {
                     if (jQuery('#bulk-controls-sending').is(':checked')) {
                         $node.find('.direct-btn:not(.disabled)').trigger('click');
+                    }
+                } else {
+                    const quantityMin = parseInt($('#bulk-controls-quantity-min').val().replace(',', '.'));
+                    const quantityMax = parseInt($('#bulk-controls-quantity-max').val().replace(',', '.'));
+                    const maxPrice = parseFloat($('#bulk-controls-price-max').val().replace(',', '.'));
+                    const maxPriceStock = isNaN(maxPrice) ? null : Math.floor(maxPrice / (item.outAmount / item.inAmount));
+
+                    if ((!isNaN(quantityMin) && item.stock < quantityMin) || (!isNaN(quantityMax) && quantityMax <= 0) || (null !== maxPriceStock && maxPriceStock <= 0)) {
+                        $node.remove();
+                    } else if (!item.gone) {
+                        const whisper = me._buildWhisper(item);
+
+                        const $div = jQuery(me._TEMPLATES.TEXTAREA.replace('ID', id).replace('WHISPER', whisper));
+                        $node.after($div);
+
+                        const $textarea = $div.find('textarea');
+                        const callback = function () {
+                            jQuery(this).select();
+                        };
+
+                        $textarea
+                            .focus(callback)
+                            .click(callback)
+                            .on('copy', function () {
+                                jQuery(this).attr('style', 'background-color:rgb(9,9,9);border-bottom:1px solid #4dc64d;');
+                            })
+                        ;
+
+                        $textarea.select();
+
+                        if (jQuery('#bulk-controls-sending').is(':checked')) {
+                            $node.find('.direct-btn:not(.disabled)').trigger('click');
+                        }
                     }
                 }
 
