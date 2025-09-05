@@ -9,17 +9,22 @@ POE Bulk is a [bookmarklet][1] which enhance your trade with the official [POE t
 you to bulk a lot of items for selling them costly later. This is not a bot, you still have to work, but you will be 
 quicker and doing it with efficiency.
 
-Functionnality
---------------
+Two main functionalities
+------------------------
 
-- Adds a textarea under each trade with an accurate whisper
-    - The lastest textarea added always gains the focus
-    - Click on or focus on a textarea select all the text of the whisper
-    - The color of the textarea will change if at least one copy is detected
-- Updates the whisper when the item is updated
-- Removes the textarea when the item is gone or outdated
-- Works with "Search Listed Item" tab only
-- Compatible with [POE Trades Companion][3] meaning copying the whisper will send it automatically in the game
+1) Sending whisper
+    - Adds a textarea under each trade with an accurate whisper
+        - The latest textarea added always gains the focus
+        - Click on or focus on a textarea select all the text of the whisper
+        - The color of the textarea will change if at least one copy is detected
+   - Updates the whisper when the item is updated
+   - Removes the textarea when the item is gone or outdated
+   - Works with "Search Listed Item" tab only
+   - Compatible with [POE Trades Companion][3] meaning copying the whisper will send it automatically in the game
+
+2) Travel to hideout
+
+**Note:** Both work with "Search Listed Item" tab only
 
 Screenshots
 -----------
