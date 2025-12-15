@@ -12,7 +12,7 @@ window.BULK = {
     _TEMPLATES: {
         NOTIFICATION: '<div class="toast-container toast-bottom-center"><div class="toast toast-STATE" style="display: block;"><div class="toast-title"></div> <div class="toast-message">MESSAGE</div></div></div>',
         TEXTAREA: '<div class="row" data-bulk-id="ID"><div style="margin:0 auto;width:50%;padding:5px;font-family:FontinSmallcaps,serif;"><textarea class="form-control text-center" rows="1" readonly>WHISPER</textarea></div></div>',
-        CONTROLS: '<div class="filter-group" id="bulk-controls"><div class="filter-group-header"><div class="filter"><span class="input-group-btn" style="visibility:hidden;"><button class="btn toggle-btn"></button></span><span class="filter-body"><span class="filter-title filter-title-clickable"><span>POE Bulk</span></span></span></div></div><div class="filter-group-body"><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Quantity</div><span class="sep"></span><input type="number" placeholder="min" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-min"><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-max"></span></div><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Buyout Bulk Price</div><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9.,]*" min="0" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-price-max"></span></div><div class="filter filter-property full-span"><span class="filter-body"><div class="filter-title">Automatic sending of whisper or trading</div><span class="sep"></span><label style="display:flex;justify-content:center;align-items: center;background:#1e2124;height:30px;width:30px;float:left;margin:0;cursor:pointer;"><input type="checkbox" style="display:block;border:2px solid #634928;background:#000000;" id="bulk-controls-sending"></label></span></div></div></div>'
+        CONTROLS: '<div class="filter-group" id="bulk-controls"><div class="filter-group-header"><div class="filter"><span class="input-group-btn" style="visibility:hidden;"><button class="btn toggle-btn"></button></span><span class="filter-body"><span class="filter-title filter-title-clickable"><span>POE Bulk</span></span></span></div></div><div class="filter-group-body"><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Quantity</div><span class="sep"></span><input type="number" placeholder="min" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-min"><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9]*" min="1" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-quantity-max"></span></div><div class="filter filter-property"><span class="filter-body"><div class="filter-title">Buyout Bulk Price</div><span class="sep"></span><input type="number" placeholder="max" maxlength="4" pattern="[0-9.,]*" min="0" inputmode="numeric" step="any" class="form-control minmax" id="bulk-controls-price-max"></span></div><div class="filter filter-property full-span"><span class="filter-body"><div class="filter-title">Automatic sending of whisper or trading</div><span class="sep"></span><label style="display:flex;justify-content:center;align-items: center;background:#1e2124;height:30px;width:30px;float:left;margin:0;cursor:pointer;"><input type="checkbox" style="display:block;border:2px solid #634928;background:#000000;" id="bulk-controls-sending"></label></span></div><div class="filter filter-property full-span"><span class="filter-body"><div class="filter-title">Force trading when the item is in demand</div><span class="sep"></span><label style="display:flex;justify-content:center;align-items: center;background:#1e2124;height:30px;width:30px;float:left;margin:0;cursor:pointer;"><input type="checkbox" style="display:block;border:2px solid #634928;background:#000000;" id="bulk-controls-sending-force"></label></span></div></div></div>'
     },
     start: function() {
         const me = BULK;
@@ -70,7 +70,7 @@ window.BULK = {
         }
 
         me._mutationObserver.disconnect();
-        me._mutationObserver.observe($results.get(0), { childList: true, subtree: true });
+        me._mutationObserver.observe($results.get(0), { attributeFilter: ['class'], childList: true, subtree: true });
         jQuery.ajax = me._ajax;
 
         me._notify('success', 'POE Bulk has started.');
@@ -274,7 +274,13 @@ window.BULK = {
         mutationRecords.forEach(BULK._onMutationRecord);
     },
     _onMutationRecord: function(mutationRecord) {
-        mutationRecord.addedNodes.forEach(BULK._onMutationRecordAdded);
+        const me = BULK;
+
+        mutationRecord.addedNodes.forEach(me._onMutationRecordAdded);
+
+        if ('attributes' === mutationRecord.type) {
+            BULK._onMutationRecordAttributeEdited(mutationRecord);
+        }
     },
     _onMutationRecordAdded: function(node) {
         const me = BULK;
@@ -332,6 +338,14 @@ window.BULK = {
                     delete me._itemById[id];
                 }
             }
+        }
+    },
+    _onMutationRecordAttributeEdited: function(mutationRecord) {
+        const jQuery = BULK._jQuery;
+        const $target = jQuery(mutationRecord.target);
+
+        if ($target.is('.direct-btn.expired:not(.disabled)') && jQuery('#bulk-controls-sending').is(':checked') && jQuery('#bulk-controls-sending-force').is(':checked')) {
+            $target.trigger('click');
         }
     }
 };
